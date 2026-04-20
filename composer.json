@@ -1,0 +1,47 @@
+{
+  "name": "oxhq/cachelet-model",
+  "description": "Eloquent model integration for Cachelet.",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "OxHQ",
+      "homepage": "https://github.com/oxhq"
+    }
+  ],
+  "require": {
+    "php": "^8.2",
+    "illuminate/database": "^12.0|^13.0",
+    "oxhq/cachelet-core": "^0.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Oxhq\\Cachelet\\": "src/"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-main": "0.1.x-dev"
+    },
+    "laravel": {
+      "providers": [
+        "Oxhq\\Cachelet\\CacheletModelServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "homepage": "https://github.com/oxhq/cachelet",
+  "keywords": [
+    "laravel",
+    "cache",
+    "swr",
+    "invalidation",
+    "eloquent",
+    "model-cache"
+  ],
+  "support": {
+    "issues": "https://github.com/oxhq/cachelet/issues",
+    "source": "https://github.com/oxhq/cachelet/tree/main/packages/cachelet-model"
+  }
+}
