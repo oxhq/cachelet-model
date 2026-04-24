@@ -4,6 +4,7 @@ namespace Oxhq\Cachelet\Builders;
 
 use Illuminate\Database\Eloquent\Model;
 use Oxhq\Cachelet\Events\CacheletInvalidated;
+use Oxhq\Cachelet\ValueObjects\CacheScope;
 
 class ModelCacheletBuilder extends CacheletBuilder
 {
@@ -19,14 +20,31 @@ class ModelCacheletBuilder extends CacheletBuilder
 
     protected bool $includeTimestamps = false;
 
+    protected bool $hasExplicitScope = false;
+
     public function setModel(Model $model): static
     {
         $this->model = $model;
+        $this->asModule('model');
 
-        return $this->withTags([
+        $this->withMetadata([
+            'model_class' => get_class($model),
+            'model_key' => $model->getKey(),
+        ])->withTags([
             'model:'.get_class($model),
             'model_id:'.$model->getKey(),
         ]);
+
+        $this->applyInferredScope();
+
+        return $this;
+    }
+
+    public function scope(CacheScope $scope): static
+    {
+        $this->hasExplicitScope = true;
+
+        return $this->applyScope($scope, 'explicit');
     }
 
     public function only(array $fields): static
@@ -197,5 +215,47 @@ class ModelCacheletBuilder extends CacheletBuilder
             modelClass: $this->model ? get_class($this->model) : null,
             modelKey: $this->model?->getKey(),
         );
+    }
+
+    protected function applyInferredScope(): void
+    {
+        if ($this->hasExplicitScope) {
+            return;
+        }
+
+        $scope = $this->makeInferredScope($this->inferredScopeIdentifier());
+
+        if ($scope) {
+            $this->applyScope($scope, 'inferred');
+        }
+    }
+
+    protected function applyScope(CacheScope $scope, string $source): static
+    {
+        if ($source === 'inferred') {
+            parent::withInferredScope($scope);
+
+            return $this;
+        }
+
+        return parent::scope($scope);
+    }
+
+    protected function makeInferredScope(string $identifier): ?CacheScope
+    {
+        return CacheScope::inferred($identifier);
+    }
+
+    protected function inferredScopeIdentifier(): string
+    {
+        if ($this->model && method_exists($this->model, 'getCacheletScope')) {
+            return (string) $this->model->getCacheletScope();
+        }
+
+        if ($this->model) {
+            return $this->model->getTable();
+        }
+
+        return $this->prefix;
     }
 }
